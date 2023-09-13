@@ -1,0 +1,74 @@
+body {
+  font-family: Arial;
+  font-size: 12px
+}
+
+* {
+  box-sizing: border-box
+}
+
+canvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+#controls {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 999
+}
+
+#controls button {
+  appearance: none;
+  font-size: 12px;
+  cursor: pointer
+}
+
+#controls button,
+#controls label {
+  min-width: 6em;
+  background-color: lightgreen;
+  min-height: 2em;
+  margin: 0.5em;
+}
+
+#controls label {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid black;
+}
+
+input[type="range"] {
+  appearance: none;
+  -webkit-appearance: none;
+  height: 1em;
+  width: 100%;
+  background-color: white;
+  background-image: linear-gradient(#FF8C00, #FF8C00);
+  background-size: 100%, 100%;
+  background-repeat: no-repeat;
+  cursor: pointer;
+}
+
+input[type="range"]::-webkit-slider-thumb {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 0.5em;
+  background-color: orangered;
+  height: 1em;
+  cursor: ew-resize;
+}
+
+input[type=range]::-webkit-slider-runnable-track {
+  appearance: none;
+  -webkit-appearance: none;
+  background: none;
+}
+
+#parallax-button {
+  cursor: pointer;
+}

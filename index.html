@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Kocka</title>
+  </head>
+  <body>
+    <canvas id="canvas"></canvas>
+    <div id="controls">
+      <div id="layer-controls">
+        <div>
+          <button id="front-right">F</button>
+          <button id="front-left">F'</button>
+        </div>
+        <div>
+          <button id="back-left">B</button>
+          <button id="back-right">B'</button>
+        </div>
+        <div>
+          <button id="left-down">L</button>
+          <button id="left-up">L'</button>
+        </div>
+        <div>
+          <button id="right-up">R</button>
+          <button id="right-down">R'</button>
+        </div>
+        <div>
+          <button id="top-left">U</button>
+          <button id="top-right">U'</button>
+        </div>
+        <div>
+          <button id="bottom-left">D</button>
+          <button id="bottom-right">D'</button>
+        </div>
+        <div>
+          <button id="m-down">M</button>
+          <button id="m-up">M'</button>
+        </div>
+        <div>
+          <button id="e-right">E</button>
+          <button id="e-left">E'</button>
+        </div>
+        <div>
+          <button id="s-up">S</button>
+          <button id="s-down">S'</button>
+        </div>
+      </div>
+      <div id="cube-controls">
+        <div>
+          <button id="up">Up</button>
+          <button id="down">Down</button>
+        </div>
+        <div>
+          <button id="left">Left</button>
+          <button id="right">Right</button>
+        </div>
+        <div>
+          <button id="tilt-left">Tilt Left</button>
+          <button id="tilt-right">Tilt Right</button>
+        </div>
+      </div>
+      <div>
+        <label><div>Opacity</div><div><input id="transparent" type="range" min="0" max="10" value="10"></div></label>
+        <label id="parallax-button" for="parallax">Parallax Mapping<input id="parallax" type="checkbox"></label>
+      </div>
+    </div>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
