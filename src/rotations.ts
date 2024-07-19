@@ -1,21 +1,22 @@
 import gsap from "gsap"
 import * as THREE from 'three'
-import { Color, Cube, CubeLayer, Direction, Orientation, Side } from "./cube-constants"
-import { cubeColors, hold, innerCubeMaterials, layers } from "./main"
+import { Color, Cube, CubeLayer, Direction, Orientation, Side, autoplay, cubeColors, innerCubeMaterials, layers, next } from "./cube-constants"
+import { innerCubeBlackMaterial } from "./materials"
 import { rotateFaceColorsXDownCenterMoves, rotateFaceColorsXDownCornerMoves, rotateFaceColorsXDownEdgeMoves, rotateFaceColorsXUpCenterMoves, rotateFaceColorsXUpCornerMoves, rotateFaceColorsXUpEdgeMoves, rotateFaceColorsYLeftCenterMoves, rotateFaceColorsYLeftCornerMoves, rotateFaceColorsYLeftEdgeMoves, rotateFaceColorsYRightCenterMoves, rotateFaceColorsYRightCornerMoves, rotateFaceColorsYRightEdgeMoves, rotateLayerColorsLeftCornerMoves, rotateLayerColorsLeftEgdeMoves, rotateLayerColorsRightCornerMoves, rotateLayerColorsRightEgdeMoves } from "./moves"
 import { Move, MoveWithLayer, TCubeLayer, TDirection, TLayer, TOriention, TSide } from "./types"
-import { innerCubeBlackMaterial } from "./materials"
 
-export const turnTime = 0.5
+export let turnTime = 0.3
 export let turnEnabled = true
 
 let currentOrientation: TOriention = Orientation.Z
 
-export function clearHold() {
-    clearInterval(hold)
+export function setTurnTime(time: number) {
+    turnTime = time;
 }
 
-export function turnCube(direction: TDirection) {
+let wasTwiceCube: boolean
+
+export function turnCube(direction: TDirection, twice?: boolean) {
     if (turnEnabled) {
         turnEnabled = false
         let axis: TOriention
@@ -45,6 +46,11 @@ export function turnCube(direction: TDirection) {
 
         orientLayersZ()
 
+        if (twice) {
+            setTurnTime(turnTime * 0.7)
+            wasTwiceCube = true
+        }
+
         eval(`gsap.to(layers.rotation, {
             duration: ${turnTime},
             ${axis}: ${degree}
@@ -70,19 +76,32 @@ export function turnCube(direction: TDirection) {
             }
 
             else if (direction == Direction.TILT_LEFT) {
-                rotateFaceColorsZDown()
+                rotateFaceColorsZLeft()
             }
 
             else if (direction == Direction.TILT_RIGHT) {
-                rotateFaceColorsZUp()
+                rotateFaceColorsZRight()
             }
 
             turnEnabled = true
+            
+            if (!twice && autoplay.checked) {
+                next.dispatchEvent(new InputEvent('input'))
+            }
+            if (twice) {
+                turnCube(direction)
+            }
+            if (wasTwiceCube) {
+                setTurnTime(turnTime / 0.7)
+                wasTwiceCube = false
+            }
         }, turnTime * 1100)
     }
 }
 
-export function turn(layer: TCubeLayer, direction: TDirection) {
+let wasTwiceLayer: boolean
+
+export function turn(layer: TCubeLayer, direction: TDirection, twice?: boolean) {
     turnEnabled = false
 
     if (layer == CubeLayer.FRONT || layer == CubeLayer.BACK || layer == CubeLayer.S) {
@@ -112,14 +131,19 @@ export function turn(layer: TCubeLayer, direction: TDirection) {
         layer == CubeLayer.LEFT && direction == Direction.DOWN ||
         layer == CubeLayer.RIGHT && direction == Direction.DOWN ||
         layer == CubeLayer.TOP && direction == Direction.LEFT ||
-        layer == CubeLayer.BOTTOM && direction == Direction.RIGHT ||
+        layer == CubeLayer.BOTTOM && direction == Direction.LEFT ||
         layer == CubeLayer.M && direction == Direction.DOWN ||
         layer == CubeLayer.E && direction == Direction.LEFT ||
-        layer == CubeLayer.S && direction == Direction.UP) {
+        layer == CubeLayer.S && direction == Direction.RIGHT) {
         angle = -Math.PI / 2
     }
 
     const cubeLayer = layers.children[cubeLayerIdx] as THREE.Group
+
+    if (twice) {
+        setTurnTime(turnTime * 0.7)
+        wasTwiceLayer = true
+    }
 
     gsap.to(cubeLayer.rotation, {
         duration: turnTime,
@@ -135,6 +159,19 @@ export function turn(layer: TCubeLayer, direction: TDirection) {
 
         cubeLayer.rotation.z = 0
         turnEnabled = true
+
+        orientLayersZ();
+
+        if (!twice && autoplay.checked) {
+            next.dispatchEvent(new InputEvent('input'))
+        }
+        if (twice) {
+            turn(layer, direction)
+        }
+        if (wasTwiceLayer) {
+            setTurnTime(turnTime / 0.7)
+            wasTwiceLayer = false
+        }
     }, turnTime * 1100)
 }
 
@@ -153,13 +190,10 @@ function orientLayersZ() {
 
 function orientLayersY() {
     if (currentOrientation == Orientation.Z || currentOrientation == Orientation.X) {
-        if (currentOrientation == Orientation.Z) {
-            rotateFaceColorsXDown()
-        }
-        else if (currentOrientation == Orientation.X) {
+        if (currentOrientation == Orientation.X) {
             rotateFaceColorsYLeft()
-            rotateFaceColorsXDown()
         }
+        rotateFaceColorsXDown()
         currentOrientation = Orientation.Y
         layers.rotation.set(-Math.PI / 2, 0, 0)
     }
@@ -169,53 +203,50 @@ function orientLayersX() {
     if (currentOrientation == Orientation.Y || currentOrientation == Orientation.Z) {
         if (currentOrientation == Orientation.Y) {
             rotateFaceColorsXUp()
-            rotateFaceColorsYRight()
         }
-        else if (currentOrientation == Orientation.Z) {
-            rotateFaceColorsYRight()
-        }
+        rotateFaceColorsYRight()
         currentOrientation = Orientation.X
         layers.rotation.set(0, -Math.PI / 2, 0)
     }
 }
 
 function rotateLayerColorsRight(layer: TLayer, layerGroup: THREE.Group) {
-    rotateLayerColors(rotateLayerColorsRightCornerMoves, rotateLayerColorsRightEgdeMoves, layerGroup, layer, [[Side.FRONT, Side.FRONT], [Side.BACK, Side.BACK]])
+    rotateLayerColors(rotateLayerColorsRightCornerMoves, rotateLayerColorsRightEgdeMoves, layerGroup, layer, [Side.FRONT, Side.BACK])
 }
 
 function rotateLayerColorsLeft(layer: TLayer, layerGroup: THREE.Group) {
-    rotateLayerColors(rotateLayerColorsLeftCornerMoves, rotateLayerColorsLeftEgdeMoves, layerGroup, layer, [[Side.FRONT, Side.FRONT], [Side.BACK, Side.BACK]])
+    rotateLayerColors(rotateLayerColorsLeftCornerMoves, rotateLayerColorsLeftEgdeMoves, layerGroup, layer, [Side.FRONT, Side.BACK])
 }
 
-function rotateFaceColorsZUp() {
+function rotateFaceColorsZRight() {
     for (let i = 0; i < 3; i++) {
         rotateLayerColorsRight(i as TLayer, layers.children[i] as THREE.Group)
     }
 }
 
-function rotateFaceColorsZDown() {
+function rotateFaceColorsZLeft() {
     for (let i = 0; i < 3; i++) {
         rotateLayerColorsLeft(i as TLayer, layers.children[i] as THREE.Group)
     }
 }
 
 function rotateFaceColorsYRight() {
-    rotateFaceColors(rotateFaceColorsYRightCornerMoves, rotateFaceColorsYRightEdgeMoves, rotateFaceColorsYRightCenterMoves, [[Side.TOP, Side.TOP], [Side.BOTTOM, Side.BOTTOM]])
+    rotateFaceColors(rotateFaceColorsYRightCornerMoves, rotateFaceColorsYRightEdgeMoves, rotateFaceColorsYRightCenterMoves, [Side.TOP, Side.BOTTOM])
 }
 
 function rotateFaceColorsYLeft() {
-    rotateFaceColors(rotateFaceColorsYLeftCornerMoves, rotateFaceColorsYLeftEdgeMoves, rotateFaceColorsYLeftCenterMoves, [[Side.TOP, Side.TOP], [Side.BOTTOM, Side.BOTTOM]])
+    rotateFaceColors(rotateFaceColorsYLeftCornerMoves, rotateFaceColorsYLeftEdgeMoves, rotateFaceColorsYLeftCenterMoves, [Side.TOP, Side.BOTTOM])
 }
 
 function rotateFaceColorsXUp() {
-    rotateFaceColors(rotateFaceColorsXUpCornerMoves, rotateFaceColorsXUpEdgeMoves, rotateFaceColorsXUpCenterMoves, [[Side.LEFT, Side.LEFT], [Side.RIGHT, Side.RIGHT]])
+    rotateFaceColors(rotateFaceColorsXUpCornerMoves, rotateFaceColorsXUpEdgeMoves, rotateFaceColorsXUpCenterMoves, [Side.LEFT, Side.RIGHT])
 }
 
 function rotateFaceColorsXDown() {
-    rotateFaceColors(rotateFaceColorsXDownCornerMoves, rotateFaceColorsXDownEdgeMoves, rotateFaceColorsXDownCenterMoves, [[Side.LEFT, Side.LEFT], [Side.RIGHT, Side.RIGHT]])
+    rotateFaceColors(rotateFaceColorsXDownCornerMoves, rotateFaceColorsXDownEdgeMoves, rotateFaceColorsXDownCenterMoves, [Side.LEFT, Side.RIGHT])
 }
 
-function rotateLayerColors(cornerMoves: Array<Move>, edgeMoves: Array<Move>, layerGroup: THREE.Group, layer: TLayer, alwaysMove: Array<[TSide, TSide]>) {
+function rotateLayerColors(cornerMoves: Array<Move>, edgeMoves: Array<Move>, layerGroup: THREE.Group, layer: TLayer, alwaysMove: Array<TSide>) {
     const newLayerColors: Array<Array<[number, number, number]>> = []
     const newLayerInnerCubeMaterials: Array<Array<THREE.ShaderMaterial>> = []
     for (let i = 0; i < 9; i++) {
@@ -237,8 +268,8 @@ function rotateLayerColors(cornerMoves: Array<Move>, edgeMoves: Array<Move>, lay
             newLayerInnerCubeMaterials[move.targetCube][move.targetSides[i]] = layerInnerCubeMaterials[move.originCube][move.originSides[i]]
         }
         for (let i = 0; i < alwaysMove.length; i++) {
-            newLayerColors[move.targetCube][alwaysMove[i][0]] = layerColors[move.originCube][alwaysMove[i][1]]
-            newLayerInnerCubeMaterials[move.targetCube][alwaysMove[i][0]] = layerInnerCubeMaterials[move.originCube][alwaysMove[i][1]]
+            newLayerColors[move.targetCube][alwaysMove[i]] = layerColors[move.originCube][alwaysMove[i]]
+            newLayerInnerCubeMaterials[move.targetCube][alwaysMove[i]] = layerInnerCubeMaterials[move.originCube][alwaysMove[i]]
         }
     })
 
@@ -248,14 +279,14 @@ function rotateLayerColors(cornerMoves: Array<Move>, edgeMoves: Array<Move>, lay
             newLayerInnerCubeMaterials[move.targetCube][move.targetSides[i]] = layerInnerCubeMaterials[move.originCube][move.originSides[i]]
         }
         for (let i = 0; i < alwaysMove.length; i++) {
-            newLayerColors[move.targetCube][alwaysMove[i][0]] = layerColors[move.originCube][alwaysMove[i][1]]
-            newLayerInnerCubeMaterials[move.targetCube][alwaysMove[i][0]] = layerInnerCubeMaterials[move.originCube][alwaysMove[i][1]]
+            newLayerColors[move.targetCube][alwaysMove[i]] = layerColors[move.originCube][alwaysMove[i]]
+            newLayerInnerCubeMaterials[move.targetCube][alwaysMove[i]] = layerInnerCubeMaterials[move.originCube][alwaysMove[i]]
         }
     })
 
     for (let i = 0; i < alwaysMove.length; i++) {
-        newLayerColors[Cube.CENTER][alwaysMove[i][0]] = layerColors[Cube.CENTER][alwaysMove[i][1]]
-        newLayerInnerCubeMaterials[Cube.CENTER][alwaysMove[i][0]] = layerInnerCubeMaterials[Cube.CENTER][alwaysMove[i][1]]
+        newLayerColors[Cube.CENTER][alwaysMove[i]] = layerColors[Cube.CENTER][alwaysMove[i]]
+        newLayerInnerCubeMaterials[Cube.CENTER][alwaysMove[i]] = layerInnerCubeMaterials[Cube.CENTER][alwaysMove[i]]
     }
 
     cubeColors[layer] = newLayerColors
@@ -264,12 +295,12 @@ function rotateLayerColors(cornerMoves: Array<Move>, edgeMoves: Array<Move>, lay
     const layerInnerCubes: Array<THREE.Mesh> = [];
     (layerGroup.children as Array<THREE.Group>).forEach(group => {
         const meshes = group.children.filter(c => c.type == 'Mesh')
-            if (meshes[0]) {
-                layerCubes.push(meshes[0] as THREE.Mesh)
-            }
-            if (meshes[1]) {
-                layerInnerCubes.push(meshes[1] as THREE.Mesh)
-            }
+        if (meshes[0]) {
+            layerCubes.push(meshes[0] as THREE.Mesh)
+        }
+        if (meshes[1]) {
+            layerInnerCubes.push(meshes[1] as THREE.Mesh)
+        }
     })
 
     for (let i = 0; i < newLayerColors.length; i++) {
@@ -285,7 +316,7 @@ function rotateLayerColors(cornerMoves: Array<Move>, edgeMoves: Array<Move>, lay
     }
 }
 
-function rotateFaceColors(cornerMoves: Array<MoveWithLayer>, edgeMoves: Array<MoveWithLayer>, centerMoves: Array<MoveWithLayer>, alwaysMove: Array<[TSide, TSide]>) {
+function rotateFaceColors(cornerMoves: Array<MoveWithLayer>, edgeMoves: Array<MoveWithLayer>, centerMoves: Array<MoveWithLayer>, alwaysMove: Array<TSide>) {
     const newCubeColors: Array<Array<Array<[number, number, number]>>> = []
     const newInnerCubeMaterials: Array<Array<Array<THREE.ShaderMaterial>>> = []
     for (let i = 0; i < 3; i++) {
@@ -310,9 +341,9 @@ function rotateFaceColors(cornerMoves: Array<MoveWithLayer>, edgeMoves: Array<Mo
             newInnerCubeMaterials[move.targetLayer][move.targetCube][move.targetSides[i]] = innerCubeMaterials[move.originLayer][move.originCube][move.originSides[i]]
         }
         for (let i = 0; i < alwaysMove.length; i++) {
-            newCubeColors[move.targetLayer][move.targetCube][alwaysMove[i][0]] = cubeColors[move.originLayer][move.originCube][alwaysMove[i][1]]
-            newInnerCubeMaterials[move.targetLayer][move.targetCube][alwaysMove[i][0]] = innerCubeMaterials[move.originLayer][move.originCube][alwaysMove[i][1]]
-        }   
+            newCubeColors[move.targetLayer][move.targetCube][alwaysMove[i]] = cubeColors[move.originLayer][move.originCube][alwaysMove[i]]
+            newInnerCubeMaterials[move.targetLayer][move.targetCube][alwaysMove[i]] = innerCubeMaterials[move.originLayer][move.originCube][alwaysMove[i]]
+        }
     })
 
     edgeMoves.forEach(move => {
@@ -321,8 +352,8 @@ function rotateFaceColors(cornerMoves: Array<MoveWithLayer>, edgeMoves: Array<Mo
             newInnerCubeMaterials[move.targetLayer][move.targetCube][move.targetSides[i]] = innerCubeMaterials[move.originLayer][move.originCube][move.originSides[i]]
         }
         for (let i = 0; i < alwaysMove.length; i++) {
-            newCubeColors[move.targetLayer][move.targetCube][alwaysMove[i][0]] = cubeColors[move.originLayer][move.originCube][alwaysMove[i][1]]
-            newInnerCubeMaterials[move.targetLayer][move.targetCube][alwaysMove[i][0]] = innerCubeMaterials[move.originLayer][move.originCube][alwaysMove[i][1]]
+            newCubeColors[move.targetLayer][move.targetCube][alwaysMove[i]] = cubeColors[move.originLayer][move.originCube][alwaysMove[i]]
+            newInnerCubeMaterials[move.targetLayer][move.targetCube][alwaysMove[i]] = innerCubeMaterials[move.originLayer][move.originCube][alwaysMove[i]]
         }
     })
 
