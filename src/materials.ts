@@ -1,13 +1,13 @@
-import cubeTextureUrl from './metal.jpg'
-import cubeMapNormalUrl from './metal_normal.png'
-import cubeRoughnessMapUrl from './metal_roughness.jpg'
-import cubeAlphaMapUrl from './cube_alpha.png'
-import cubeCenterTextureUrl from './metal_center.jpg'
-import cubeCenterNormalMapUrl from './metal_center_normal.png'
-import cubeCenterRoughnessMapUrl from './metal_center_roughness.jpg'
-import edgeTextureUrl from './metal_edge.jpg'
-import edgeRoughnessMapUrl from './metal_edge_roughness.jpg'
-import edgeNormalMapUrl from './metal_edge_normal.png'
+import cubeTextureUrl from './images/metal.jpg'
+import cubeMapNormalUrl from './images/metal_normal.png'
+import cubeRoughnessMapUrl from './images/metal_roughness.jpg'
+import cubeAlphaMapUrl from './images/cube_alpha.png'
+import cubeCenterTextureUrl from './images/metal_center.jpg'
+import cubeCenterNormalMapUrl from './images/metal_center_normal.png'
+import cubeCenterRoughnessMapUrl from './images/metal_center_roughness.jpg'
+import edgeTextureUrl from './images/metal_edge.jpg'
+import edgeRoughnessMapUrl from './images/metal_edge_roughness.jpg'
+import edgeNormalMapUrl from './images/metal_edge_normal.png'
 import * as THREE from 'three'
 //@ts-ignore
 import fragment from './shaders/fragment.glsl'
@@ -34,12 +34,12 @@ export const cubeAlphaMap = new THREE.TextureLoader().load(cubeAlphaMapUrl)
 const cubeCenterTexture = new THREE.TextureLoader().load(cubeCenterTextureUrl)
 const cubeCenterNormalMap = new THREE.TextureLoader().load(cubeCenterNormalMapUrl)
 const cubeCenterRougnessMap = new THREE.TextureLoader().load(cubeCenterRoughnessMapUrl)
-const cubeNormalMaterial = new THREE.MeshStandardMaterial({ transparent: true, alphaMap: cubeAlphaMap, alphaToCoverage: true, vertexColors: true, map: cubeCenterTexture, normalMap: cubeCenterNormalMap, roughness: 1, roughnessMap: cubeCenterRougnessMap })
+const cubeNormalMaterial = new THREE.MeshStandardMaterial({ transparent: true, alphaMap: cubeAlphaMap, alphaToCoverage: true, vertexColors: true, map: cubeCenterTexture, normalMap: cubeCenterNormalMap, roughnessMap: cubeCenterRougnessMap, precision: 'highp' })
 
 const cubeTexture1 = new THREE.TextureLoader().load(cubeTextureUrl)
 const cubeNormalMap1 = new THREE.TextureLoader().load(cubeMapNormalUrl)
 const cubeRoughnessMap1 = new THREE.TextureLoader().load(cubeRoughnessMapUrl)
-const cubeMaterial1 = new THREE.MeshStandardMaterial({ transparent: true, alphaMap: cubeAlphaMap, alphaToCoverage: true, vertexColors: true, map: cubeTexture1, normalMap: cubeNormalMap1, roughness: 1, roughnessMap: cubeRoughnessMap1, precision: 'highp' })
+const cubeMaterial1 = new THREE.MeshStandardMaterial({ transparent: true, alphaMap: cubeAlphaMap, alphaToCoverage: true, vertexColors: true, map: cubeTexture1, normalMap: cubeNormalMap1, roughnessMap: cubeRoughnessMap1, precision: 'highp' })
 
 const cubeTexture2 = new THREE.TextureLoader().load(cubeTextureUrl)
 cubeTexture2.center.set(0.5, 0.5)
@@ -50,7 +50,7 @@ cubeNormalMap2.rotation = -Math.PI / 2
 const cubeRoughnessMap2 = new THREE.TextureLoader().load(cubeRoughnessMapUrl)
 cubeRoughnessMap2.center.set(0.5, 0.5)
 cubeRoughnessMap2.rotation = -Math.PI / 2
-const cubeMaterial2 = new THREE.MeshStandardMaterial({ transparent: true, alphaMap: cubeAlphaMap, alphaToCoverage: true, vertexColors: true, map: cubeTexture2, normalMap: cubeNormalMap2, roughness: 1, roughnessMap: cubeRoughnessMap2, precision: 'highp' })
+const cubeMaterial2 = new THREE.MeshStandardMaterial({ transparent: true, alphaMap: cubeAlphaMap, alphaToCoverage: true, vertexColors: true, map: cubeTexture2, normalMap: cubeNormalMap2, roughnessMap: cubeRoughnessMap2, precision: 'highp' })
 
 const cubeTexture3 = new THREE.TextureLoader().load(cubeTextureUrl)
 cubeTexture3.center.set(0.5, 0.5)
@@ -61,7 +61,7 @@ cubeNormalMap3.rotation = -Math.PI
 const cubeRoughnessMap3 = new THREE.TextureLoader().load(cubeRoughnessMapUrl)
 cubeRoughnessMap3.center.set(0.5, 0.5)
 cubeRoughnessMap3.rotation = -Math.PI
-const cubeMaterial3 = new THREE.MeshStandardMaterial({ transparent: true, alphaMap: cubeAlphaMap, alphaToCoverage: true, vertexColors: true, map: cubeTexture3, normalMap: cubeNormalMap3, roughness: 1, roughnessMap: cubeRoughnessMap3, precision: 'highp' })
+const cubeMaterial3 = new THREE.MeshStandardMaterial({ transparent: true, alphaMap: cubeAlphaMap, alphaToCoverage: true, vertexColors: true, map: cubeTexture3, normalMap: cubeNormalMap3, roughnessMap: cubeRoughnessMap3, precision: 'highp' })
 
 const cubeTexture4 = new THREE.TextureLoader().load(cubeTextureUrl)
 cubeTexture4.center.set(0.5, 0.5)
@@ -72,7 +72,7 @@ cubeNormalMap4.rotation = -Math.PI * 1.5
 const cubeRoughnessMap4 = new THREE.TextureLoader().load(cubeRoughnessMapUrl)
 cubeRoughnessMap4.center.set(0.5, 0.5)
 cubeRoughnessMap4.rotation = -Math.PI * 1.5
-const cubeMaterial4 = new THREE.MeshStandardMaterial({ transparent: true, alphaMap: cubeAlphaMap, alphaToCoverage: true, vertexColors: true, map: cubeTexture4, normalMap: cubeNormalMap4, roughness: 1, roughnessMap: cubeRoughnessMap4, precision: 'highp' })
+const cubeMaterial4 = new THREE.MeshStandardMaterial({ transparent: true, alphaMap: cubeAlphaMap, alphaToCoverage: true, vertexColors: true, map: cubeTexture4, normalMap: cubeNormalMap4, roughnessMap: cubeRoughnessMap4, precision: 'highp' })
 
 export const cubeMaterials = [
   [
@@ -305,7 +305,7 @@ const edgeColor = 'darkslategray'
 const edgeTexture = new THREE.TextureLoader().load(edgeTextureUrl)
 const edgeRoughnessMap = new THREE.TextureLoader().load(edgeRoughnessMapUrl)
 const edgeNormalMap = new THREE.TextureLoader().load(edgeNormalMapUrl)
-const edgeMaterial = new THREE.MeshStandardMaterial({ color: edgeColor, map: edgeTexture, roughness: 1, roughnessMap: edgeRoughnessMap, precision: 'highp', normalMap: edgeNormalMap })
+const edgeMaterial = new THREE.MeshStandardMaterial({ color: edgeColor, map: edgeTexture, normalMap: edgeNormalMap, roughnessMap: edgeRoughnessMap, precision: 'highp' })
 
 export class CubeEdge extends THREE.Group {
   private static readonly edgeShape: THREE.Shape = new THREE.Shape().moveTo(-0.001, 0.05).lineTo(1.001, 0.05).lineTo(0.951, 0).lineTo(0.0499, 0)
