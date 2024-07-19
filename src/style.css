@@ -1,13 +1,14 @@
 body {
   font-family: Arial;
-  font-size: 12px
+  font-size: 12px;
+  margin: 0
 }
 
 * {
   box-sizing: border-box
 }
 
-canvas {
+#canvas {
   position: absolute;
   top: 0;
   left: 0;
@@ -17,25 +18,44 @@ canvas {
   position: absolute;
   top: 0;
   left: 0;
-  z-index: 999
+  z-index: 900
 }
 
-#controls button {
+button {
   appearance: none;
   font-size: 12px;
   cursor: pointer
 }
 
-#controls button,
+#controls button:not(#solve-steps button),
 #controls label {
   min-width: 6em;
+}
+
+#controls button,
+#controls label,
+#solve-steps * {
   background-color: lightgreen;
   min-height: 2em;
   margin: 0.5em;
+  border-radius: 0.3em;
+}
+
+#controls button,
+#controls label {
+  padding: 0.3em;
+}
+
+#solve-steps * {
+  width: 100%;
+}
+
+#solve-steps div {
+  align-items: center;
+  justify-content: center;
 }
 
 #controls label {
-  display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
@@ -46,7 +66,6 @@ input[type="range"] {
   appearance: none;
   -webkit-appearance: none;
   height: 1em;
-  width: 100%;
   background-color: white;
   background-image: linear-gradient(#FF8C00, #FF8C00);
   background-size: 100%, 100%;
@@ -71,4 +90,308 @@ input[type=range]::-webkit-slider-runnable-track {
 
 #parallax-button {
   cursor: pointer;
+}
+
+#normal-canvas-radio:checked ~ #canvas-options > #normal-canvas-label,
+#avg-canvas-radio:checked ~ #canvas-options > #avg-canvas-label,
+#max-canvas-radio:checked ~ #canvas-options > #max-canvas-label,
+#p-norm-canvas-radio:checked ~ #canvas-options > #p-norm-canvas-label,
+#auto-detect-radio:checked ~ #canvas-options > #auto-detect-label {
+  background-color: midnightblue;
+  color: palegreen
+}
+
+#normal-canvas-radio:checked ~ #canvas-wrap > #normal-canvas-wrap,
+#avg-canvas-radio:checked ~ #canvas-wrap > #corrected-canvas,
+#max-canvas-radio:checked ~ #canvas-wrap > #corrected-canvas,
+#p-norm-canvas-radio:checked ~ #canvas-wrap > #corrected-canvas,
+#auto-detect-radio:checked ~ #canvas-wrap > #normal-canvas-wrap {
+  display: block
+}
+
+#auto-detect-radio:checked ~ #canvas-wrap > #normal-canvas-wrap {
+  position: relative;
+}
+
+#auto-detect {
+  --width: 8em;
+  width: var(--width);
+  position: absolute;
+  top: 1em;
+  left: calc(50% - var(--width) / 2);
+  background-color: rgb(255, 0, 255);
+  color: white;
+  font-weight: bold;
+  border: 1px solid purple;
+  border-radius: 0.3em;
+  padding: 0.5em;
+  font-size: 1em;
+}
+
+#auto-detect:hover {
+  background-color: darkorchid
+}
+
+#auto-detect-radio:checked ~ #canvas-wrap > #normal-canvas-wrap button {
+  display: inline;
+}
+
+#auto-detect-radio:checked ~ #canvas-wrap > #normal-canvas-wrap::before {
+  --font-size: 3em;
+  --outline-color: purple;
+  position: absolute;
+  content: '+';
+  text-align: center;
+  width: var(--font-size);
+  line-height: var(--font-size);
+  font-size: var(--font-size);
+  color: rgb(255, 0, 255);
+  z-index: 999;
+  top: calc(50% - var(--font-size) / 2);
+  left: calc(50% - var(--font-size) / 2);
+  text-shadow: -1px -1px 0 var(--outline-color), -1px 1px 0 var(--outline-color), 1px -1px 0 var(--outline-color), 1px 1px 0 var(--outline-color);
+}
+
+#auto-detect-radio:checked ~ #canvas-wrap > #normal-canvas-wrap::after {
+  --width: 12em;
+  font-weight: bold;
+  color: white;
+  position: absolute;
+  width: var(--width);
+  padding: 0.5em;
+  border-radius: 0.5em;
+  content: 'Position the cross inside a white side on the cube and press the Auto detect button';
+  background-color: rgba(255, 0, 255, 0.7);
+  bottom: 1em;
+  left: calc(50% - var(--width) / 2);
+}
+
+input[type=radio],
+#auto-detect,
+#solve-steps,
+#canvas-wrap >*:not(:last-child) {
+  display: none;
+}
+
+#canvas-options label {
+  justify-content: space-evenly;
+  align-items: center;
+  flex-wrap: wrap;
+  background-color: palegreen;
+  padding: 0.5em;
+  cursor: pointer;
+  font-weight: bold;
+  border: 3px solid goldenrod;
+  border-radius: 0.3em;
+  color: midnightblue;
+  margin: 0.2em;
+  width: 100%;
+  text-align: center;
+}
+
+#canvas-options label:hover {
+  background-color: limegreen
+}
+
+#canvas-options {
+  justify-content: center;
+  width: 100%
+}
+
+#saved-identified-colors-dialog::backdrop,
+#color-identifier-dialog {
+  background-color: rgba(123, 104, 238, 0.9);
+}
+
+#color-identifier-dialog {
+  width: 100vw;
+  height: 100vh;
+  margin: 0;
+  z-index: 998;
+  border: none;
+  backdrop-filter: blur(5px);
+}
+
+#color-identifier-dialog > div {
+  flex-direction: column;
+  align-items: center;
+}
+
+#start-identification {
+  font-size: 1.5em;
+}
+
+#solve,
+#identify-colors {
+  width: calc(100% - 1em);
+}
+
+#saved-identified-colors-dialog,
+#identified-colors-dialog {
+  border-radius: 1em;
+  background-color: thistle;
+}
+
+#identified-colors-dialog {
+  min-width: 35em;
+  min-height: 35em;
+  z-index: 998;
+  padding: 1em;
+  margin-top: 25vh
+}
+
+#identified-colors-dialog {
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+}
+
+#identified-colors-dialog::backdrop {
+  background-color: rgba(255, 255, 255, 0.5);
+}
+
+#identified-colors-button-wrap button {
+  margin: 1em 2em 0 2em;
+  border: 2px solid black;
+  border-radius: 0.3em;
+  padding: 0.5em 1em;
+  font-weight: bold;
+  font-size: 1em;
+}
+
+#accept-colors {
+  background-color: palegreen;
+}
+
+#reject-colors {
+  background-color: lightcoral;
+}
+
+#accept-colors:hover {
+  background-color: forestgreen;
+}
+
+#reject-colors:hover {
+  background-color: red;
+}
+
+#canvas-wrap,
+#controls label,
+#canvas-options,
+#solve-steps div,
+#solve-wrap > div,
+#canvas-options label,
+#identified-squares > div,
+.saved-identified-colors-row,
+#color-identifier-dialog > div,
+.saved-identified-colors > div,
+#identified-colors-dialog[open],
+#saved-identified-colors-dialog > div {
+  display: flex
+}
+
+#identified-colors-errors {
+  background-color: lightpink;
+  margin: 1em 1em 0.5em 1em;
+  border-radius: 0.5em;
+  padding: 0 1em;
+  min-width: 10em;
+  color: maroon;
+  border: 2px solid lightcoral
+}
+
+#solve-error {
+  background-color: lightyellow;
+  color: orangered;
+  border: 2px solid orange;
+  font-size: 1.2em;
+  text-align: center;
+  font-weight: bold;
+  border-radius: 0.5em;
+  padding: 1em;
+  position: absolute;
+  top: 1em;
+  left: 0;
+  right: 0;
+  margin: 0 auto;
+  width: 10em;
+}
+
+#exposure-wrap {
+  width: 100%;
+  border-radius: 0.2rem;
+  background-color: lightgreen;
+  padding: 0.5rem;
+  align-items: center;
+  font-weight: bold;
+  color: midnightblue;
+  border: 3px solid goldenrod;
+  margin-bottom: 0.5rem;
+  text-align: center;
+}
+
+#exposure-wrap span {
+  font-size: 1.2rem;
+}
+
+#exposure-settings {
+  margin-top: 0.5rem;
+  display: flex;
+  gap: 0.5rem;
+}
+
+#exposure-settings div {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+#exposure-settings > div:nth-child(2) {
+  flex-grow: 1;
+}
+
+.saved-identified-colors-row > div {
+  margin: 0.5em;
+}
+
+.identify-color-button {
+  background-color: khaki;
+  width: 100%;
+  text-align: center;
+  padding: 0.5em;
+  border: 3px solid orangered;
+  border-radius: 0.3em;
+  color: purple;
+  font-weight: bold;
+  margin: 0.5em 0
+}
+
+.identify-color-button:hover {
+  background-color: gold;
+}
+
+.square {
+  border: 2px solid black;
+}
+
+.square {
+  width: 8em;
+  height: 8em;
+  border-radius: 0.8em;
+}
+
+.close-button {
+  margin-bottom: 0.2em;
+  padding: 0.5em;
+  font-weight: bold;
+  background-color: papayawhip;
+  border: 2px solid darkred;
+  font-size: 1.2em;
+  color: darkred;
+  border-radius: 0.3em;
+  width: 100%;
+}
+
+.close-button:hover {
+  background-color: palegoldenrod;
 }
