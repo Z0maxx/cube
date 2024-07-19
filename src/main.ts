@@ -1,11 +1,13 @@
 import * as THREE from 'three'
 import { assertExists } from './assertions'
+import { Color, cubeColors, innerCubeMaterials, layers } from './cube-constants'
+import { initCubeSolver } from './solver'
 import { CubeEdge, cubeAlphaMap, cubeMaterials, innerCubeBlackMaterial, innerCubeBlueMaterial, innerCubeGreenMaterial, innerCubeOrangeMaterial, innerCubeRedMaterial, innerCubeWhiteMaterial, innerCubeYellowMaterial, } from './materials'
-import { clearHold, turn, turnCube, turnEnabled, turnTime } from './rotations'
+import { turn, turnCube, turnEnabled, turnTime } from './rotations'
 import './style.css'
 import { TCubeLayer, TDirection } from './types'
+import { initColorIdentifier } from './color-identifier'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
-import { Color } from './cube-constants'
 
 const ambientLight = new THREE.AmbientLight('white')
 
@@ -20,7 +22,6 @@ light2.position.set(-5, 0, -1)
 const light3 = new THREE.PointLight('lightpink')
 light3.intensity = 50
 light3.position.set(0, -3, -3)
-
 
 const scene = new THREE.Scene()
 scene.background = new THREE.Color().setColorName('mediumslateblue')
@@ -37,8 +38,13 @@ const renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true })
 renderer.setPixelRatio(window.devicePixelRatio)
 renderer.setSize(window.innerWidth, window.innerHeight)
 
-export const cubeColors: Array<Array<Array<[number, number, number]>>> = []
-export const innerCubeMaterials: Array<Array<Array<THREE.ShaderMaterial>>> = []
+let hold: ReturnType<typeof setInterval> | undefined
+export function setHold(func: number) {
+    hold = func
+}
+export function clearHold() {
+    clearInterval(hold)
+}
 
 for (let i = 0; i < 3; i++) {
     const layerColors = []
@@ -90,7 +96,7 @@ for (let i = 0; i < 3; i++) {
     innerCubeMaterials.push(innerLayerMaterials)
 }
 
-export const layers = new THREE.Group()
+
 const edgeWidth = 0.05
 const edgeOffset = 0.4851 - 2 * edgeWidth / 10
 
@@ -207,7 +213,6 @@ scene.rotateX(0.45)
 scene.rotateY(0.5)
 
 const controls = new OrbitControls(camera, renderer.domElement)
-
 function animate() {
     requestAnimationFrame(animate)
     controls.update()
@@ -218,14 +223,18 @@ animate()
 
 const transparentSlider = assertExists(document.getElementById('transparent'))
 transparentSlider.addEventListener('input', (e: Event) => {
-    const target = e.target as HTMLInputElement
-    const min = parseInt(target.min)
-    const max = parseInt(target.max)
-    const val = parseInt(target.value)
-    let percentage = (val - min) * 100 / (max - min)
-
-    target.style.backgroundSize = percentage + '% 100%'
     setOpacity(parseInt((e.target as HTMLInputElement).value))
+})
+
+document.querySelectorAll('input[type=range]').forEach(range => {
+    range.addEventListener('input', (e: Event) => {
+        const target = e.target as HTMLInputElement
+        const min = parseInt(target.min)
+        const max = parseInt(target.max)
+        const val = parseInt(target.value)
+        const percentage = (val - min) * 100 / (max - min)
+        target.style.backgroundSize = percentage + '% 100%'
+    })
 })
 
 const size = 1024 * 1024
@@ -254,15 +263,15 @@ function setParallax() {
     setOpacity(0)
 }
 
-export let hold: ReturnType<typeof setInterval> | undefined
+
 const cubeControls = assertExists(document.getElementById('cube-controls'))
 for (const controlWrap of cubeControls.children) {
     for (const control of controlWrap.children) {
         control.addEventListener('mousedown', () => {
             turnCube(control.id as TDirection)
-            hold = setInterval(() => {
+            setHold(setInterval(() => {
                 turnCube(control.id as TDirection)
-            }, 2 * turnTime * 1000)
+            }, 2 * turnTime * 1000))
         })
 
         control.addEventListener('mouseup', () => {
@@ -292,3 +301,6 @@ window.addEventListener('resize', () => {
 })
 
 assertExists(document.getElementById('parallax')).addEventListener('click', setParallax)
+
+initCubeSolver()
+initColorIdentifier()
