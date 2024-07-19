@@ -1,3 +1,6 @@
+import * as THREE from "three" 
+import { assertExists, assertHTMLInputElement } from "./assertions"
+
 export const Side = {
     RIGHT: 0,
     LEFT: 1,
@@ -61,3 +64,36 @@ export const Color = {
     YELLOW: [1, 1, 0] as [number, number, number],
     ORANGE: [1, 0.5, 0] as [number, number, number]
 } as const
+
+export const ColorNumber = {
+    BLACK: 0,
+    WHITE: 1,
+    RED: 2,
+    GREEN: 3,
+    BLUE: 4,
+    YELLOW: 5,
+    ORANGE: 6
+} as const
+
+export const Notation = {
+    NONE: 0,
+    L: 1, Lp: 2, L2: 3,
+    R: 4, Rp: 5, R2: 6,
+    F: 7, Fp: 8, F2: 9,
+    B: 10, Bp: 11, B2: 12,
+    U: 13, Up: 14, U2: 15,
+    D: 16, Dp: 17, D2: 18,
+    M: 19, Mp: 20, M2: 21,
+    E: 22, Ep: 23, E2: 24,
+    S: 25, Sp: 26, S2: 27,
+    x: 28, xp: 29, x2: 30,
+    y: 31, yp: 32, y2: 33,
+    z: 34, zp: 35, z2: 36
+} as const
+
+export const next = assertExists(document.getElementById('next')) as HTMLInputElement
+export const cubeColors: Array<Array<Array<[number, number, number]>>> = []
+export const innerCubeMaterials: Array<Array<Array<THREE.ShaderMaterial>>> = []
+export const layers = new THREE.Group()
+export const autoplay = assertHTMLInputElement(document.getElementById('autoplay'))
+export const whiteCross = assertHTMLInputElement(document.getElementById('white-cross'))
