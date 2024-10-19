@@ -96,6 +96,9 @@ assertExists(document.getElementById('reject-colors')).addEventListener('click',
 
 assertExists(document.getElementById('close-saved-identified-colors')).addEventListener('click', _ => {
     savedIdentifiedColorsPopup.close()
+    if (checkColors(identifiedCubeColorStrings)) {
+        endIdentification()
+    }
 })
 
 document.querySelectorAll('#saved-identified-colors-dialog .identify-color-button').forEach((button, idx) => {
@@ -304,7 +307,7 @@ function setFaceColors() {
             endIdentification()
             setIdentifiedFaceColors()
         }
-        
+
     }
 }
 
@@ -321,7 +324,7 @@ identifierWorker.addEventListener('message', (message: MessageEvent<Array<string
     if (data.every(c => c != '')) {
         identifiedColorStrings = data.map(c => assertColorString(c))
         showIdentifiedColors()
-        identifying = false            
+        identifying = false
     }
 })
 
@@ -412,7 +415,7 @@ export function initColorIdentifier() {
                     track.applyConstraints({
                         advanced: [
                             //@ts-ignore
-                            {exposureMode: 'continuous'}
+                            { exposureMode: 'continuous' }
                         ]
                     })
                 }
@@ -422,29 +425,30 @@ export function initColorIdentifier() {
                 track.applyConstraints({
                     advanced: [
                         //@ts-ignore
-                        {exposureMode: 'manual'}
-                    ]})
+                        { exposureMode: 'manual' }
+                    ]
+                })
                     .then(() => {
                         track.applyConstraints({
                             advanced: [
                                 //@ts-ignore
-                                {exposureTime: exposure.value}
+                                { exposureTime: exposure.value }
                             ]
                         })
-                })
+                    })
             })
-            
+
             video.addEventListener('loadedmetadata', _ => {
                 try {
                     const drawingLoop = async (_: unknown) => {
                         const bitmap = await createImageBitmap(video);
                         await setFrame(bitmap)
-    
+
                         if (identifying && recievedResponse) {
                             recievedResponse = false
                             sendIdentifyRequest()
                         }
-    
+
                         if (!video.ended && !stopped) {
                             video.requestVideoFrameCallback(drawingLoop);
                         }
