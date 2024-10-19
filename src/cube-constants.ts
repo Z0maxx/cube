@@ -91,7 +91,7 @@ export const Notation = {
     z: 34, zp: 35, z2: 36
 } as const
 
-export const next = assertExists(document.getElementById('next')) as HTMLInputElement
+export const next = document.createElement('input') as HTMLInputElement
 export const cubeColors: Array<Array<Array<[number, number, number]>>> = []
 export const innerCubeMaterials: Array<Array<Array<THREE.ShaderMaterial>>> = []
 export const layers = new THREE.Group()
