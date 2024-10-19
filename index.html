@@ -1,71 +1,292 @@
 <!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Kocka</title>
-  </head>
-  <body>
-    <canvas id="canvas"></canvas>
-    <div id="controls">
-      <div id="layer-controls">
-        <div>
-          <button id="front-right">F</button>
-          <button id="front-left">F'</button>
-        </div>
-        <div>
-          <button id="back-left">B</button>
-          <button id="back-right">B'</button>
-        </div>
-        <div>
-          <button id="left-down">L</button>
-          <button id="left-up">L'</button>
-        </div>
-        <div>
-          <button id="right-up">R</button>
-          <button id="right-down">R'</button>
-        </div>
-        <div>
-          <button id="top-left">U</button>
-          <button id="top-right">U'</button>
-        </div>
-        <div>
-          <button id="bottom-left">D</button>
-          <button id="bottom-right">D'</button>
-        </div>
-        <div>
-          <button id="m-down">M</button>
-          <button id="m-up">M'</button>
-        </div>
-        <div>
-          <button id="e-right">E</button>
-          <button id="e-left">E'</button>
-        </div>
-        <div>
-          <button id="s-up">S</button>
-          <button id="s-down">S'</button>
-        </div>
-      </div>
-      <div id="cube-controls">
-        <div>
-          <button id="up">Up</button>
-          <button id="down">Down</button>
-        </div>
-        <div>
-          <button id="left">Left</button>
-          <button id="right">Right</button>
-        </div>
-        <div>
-          <button id="tilt-left">Tilt Left</button>
-          <button id="tilt-right">Tilt Right</button>
-        </div>
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="icon" href="src/images/favicon.ico">
+  <title>Cube</title>
+</head>
+
+<body>
+  <canvas id="canvas"></canvas>
+  <div id="controls">
+    <div id="layer-controls">
+      <div>
+        <button id="front-right">F</button>
+        <button id="front-left">F'</button>
       </div>
       <div>
-        <label><div>Opacity</div><div><input id="transparent" type="range" min="0" max="10" value="10"></div></label>
-        <label id="parallax-button" for="parallax">Parallax Mapping<input id="parallax" type="checkbox"></label>
+        <button id="back-left">B</button>
+        <button id="back-right">B'</button>
+      </div>
+      <div>
+        <button id="left-down">L</button>
+        <button id="left-up">L'</button>
+      </div>
+      <div>
+        <button id="right-up">R</button>
+        <button id="right-down">R'</button>
+      </div>
+      <div>
+        <button id="top-left">U</button>
+        <button id="top-right">U'</button>
+      </div>
+      <div>
+        <button id="bottom-right">D</button>
+        <button id="bottom-left">D'</button>
+      </div>
+      <div>
+        <button id="m-down">M</button>
+        <button id="m-up">M'</button>
+      </div>
+      <div>
+        <button id="e-right">E</button>
+        <button id="e-left">E'</button>
+      </div>
+      <div>
+        <button id="s-right">S</button>
+        <button id="s-left">S'</button>
       </div>
     </div>
-    <script type="module" src="/src/main.ts"></script>
-  </body>
+    <div id="cube-controls">
+      <div>
+        <button id="up">Up</button>
+        <button id="down">Down</button>
+      </div>
+      <div>
+        <button id="left">Left</button>
+        <button id="right">Right</button>
+      </div>
+      <div>
+        <button id="tilt-left">Tilt Left</button>
+        <button id="tilt-right">Tilt Right</button>
+      </div>
+    </div>
+    <div>
+      <label>
+        <div>Opacity</div>
+        <div><input id="transparent" type="range" min="0" max="10" value="10"></div>
+      </label>
+      <label id="parallax-button" for="parallax">Parallax Mapping<input id="parallax" type="checkbox"></label>
+    </div>
+    <div>
+      <div id="solve-wrap">
+        <div>
+          <button id="solve">Solve</button>
+        </div>
+        <div>
+          <label for="autoplay">Autoplay<input id="autoplay" type="checkbox"></label>
+          <label for="white-cross">White Cross<input id="white-cross" type="checkbox"></label>
+        </div>
+      </div>
+      <div id="solve-steps">
+        <button id="previous-step"></button>
+        <div id="current-step"></div><button id="next-step"></button>
+      </div>
+    </div>
+    <div>
+      <button id="identify-colors">Identify Colors</button>
+    </div>
+  </div>
+  <div id="solve-error" style="display: none;"></div>
+  <dialog id="color-identifier-dialog">
+    <div>
+      <button id="close-color-identifier" class="close-button">Close</button>
+      <button id="start-identification" class="identify-color-button"></button>
+      <div id="exposure-wrap">
+        <span>Exposure Time</span>
+        <div id="exposure-settings">
+          <div>
+            <label for="auto-exposure">Auto</label>
+            <input type="checkbox" id="auto-exposure">
+          </div>
+          <div>
+            <label for="exposure">Manual</label>
+            <input type="range" min="10" max="1000" value="500" step="1" id="exposure" style="width: 100%">
+          </div>
+        </div>
+      </div>
+      
+      <video id="cube-video" style="display: none"></video>
+      <input type="radio" id="normal-canvas-radio" name="video" checked>
+      <input type="radio" id="avg-canvas-radio" name="video">
+      <input type="radio" id="max-canvas-radio" name="video">
+      <input type="radio" id="p-norm-canvas-radio" name="video">
+      <input type="radio" id="auto-detect-radio" name="video">
+      <div id="canvas-options">
+        <label id="normal-canvas-label" for="normal-canvas-radio">Normal Video</label>
+        <label id="avg-canvas-label" for="avg-canvas-radio">Average Corrected Video</label>
+        <label id="max-canvas-label" for="max-canvas-radio">Max Corrected Video</label>
+        <label id="p-norm-canvas-label" for="p-norm-canvas-radio">P Norm Corrected Video<input id="p-norm" type="range" min="2" max="8" value="8" step="2"></label>
+        <label id="auto-detect-label" for="auto-detect-radio">Auto Detect Best Option</label>
+      </div>
+      <div id="canvas-wrap">
+        <div id="normal-canvas-wrap">
+          <canvas id="normal-canvas"></canvas>
+          <button id="auto-detect">Auto Detect</button>
+        </div>
+        <canvas id="corrected-canvas"></canvas>
+        <canvas id="result-canvas"></canvas>
+      </div>
+    </div>
+  </dialog>
+  <dialog id="identified-colors-dialog">
+    <div id="identified-squares">
+      <div>
+        <div class="square"></div>
+        <div class="square"></div>
+        <div class="square"></div>
+      </div>
+      <div>
+        <div class="square"></div>
+        <div class="square"></div>
+        <div class="square"></div>
+      </div>
+      <div>
+        <div class="square"></div>
+        <div class="square"></div>
+        <div class="square"></div>
+      </div>
+    </div>
+    <div id="identified-colors-button-wrap">
+      <button id="accept-colors">Accept</button>
+      <button id="reject-colors">Try again</button>
+    </div>
+  </dialog>
+  <dialog id="saved-identified-colors-dialog">
+    <button id="close-saved-identified-colors" class="close-button">Close</button>
+    <div>
+      <div>
+        <div class="saved-identified-colors-row">
+          <div>
+            <button class="identify-color-button">Identify Front Face</button>
+            <div class="saved-identified-colors">
+              <div>
+                <div class="square"></div>
+                <div class="square"></div>
+                <div class="square"></div>
+              </div>
+              <div>
+                <div class="square"></div>
+                <div class="square"></div>
+                <div class="square"></div>
+              </div>
+              <div>
+                <div class="square"></div>
+                <div class="square"></div>
+                <div class="square"></div>
+              </div>
+            </div>
+          </div>
+          <div>
+            <button class="identify-color-button">Identify Right Face</button>
+            <div class="saved-identified-colors">
+              <div>
+                <div class="square"></div>
+                <div class="square"></div>
+                <div class="square"></div>
+              </div>
+              <div>
+                <div class="square"></div>
+                <div class="square"></div>
+                <div class="square"></div>
+              </div>
+              <div>
+                <div class="square"></div>
+                <div class="square"></div>
+                <div class="square"></div>
+              </div>
+            </div>
+          </div>
+          <div>
+            <button class="identify-color-button">Identify Back Face</button>
+            <div class="saved-identified-colors">
+              <div>
+                <div class="square"></div>
+                <div class="square"></div>
+                <div class="square"></div>
+              </div>
+              <div>
+                <div class="square"></div>
+                <div class="square"></div>
+                <div class="square"></div>
+              </div>
+              <div>
+                <div class="square"></div>
+                <div class="square"></div>
+                <div class="square"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="saved-identified-colors-row">
+          <div>
+            <button class="identify-color-button">Identify Left Face</button>
+            <div class="saved-identified-colors">
+              <div>
+                <div class="square"></div>
+                <div class="square"></div>
+                <div class="square"></div>
+              </div>
+              <div>
+                <div class="square"></div>
+                <div class="square"></div>
+                <div class="square"></div>
+              </div>
+              <div>
+                <div class="square"></div>
+                <div class="square"></div>
+                <div class="square"></div>
+              </div>
+            </div>
+          </div>
+          <div>
+            <button class="identify-color-button">Identify Top Face</button>
+            <div class="saved-identified-colors">
+              <div>
+                <div class="square"></div>
+                <div class="square"></div>
+                <div class="square"></div>
+              </div>
+              <div>
+                <div class="square"></div>
+                <div class="square"></div>
+                <div class="square"></div>
+              </div>
+              <div>
+                <div class="square"></div>
+                <div class="square"></div>
+                <div class="square"></div>
+              </div>
+            </div>
+          </div>
+          <div>
+            <button class="identify-color-button">Identify Bottom Face</button>
+            <div class="saved-identified-colors">
+              <div>
+                <div class="square"></div>
+                <div class="square"></div>
+                <div class="square"></div>
+              </div>
+              <div>
+                <div class="square"></div>
+                <div class="square"></div>
+                <div class="square"></div>
+              </div>
+              <div>
+                <div class="square"></div>
+                <div class="square"></div>
+                <div class="square"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div id="identified-colors-errors"></div>
+    </div>
+  </dialog>
+  <script type="module" src="/src/main.ts"></script>
+</body>
+
 </html>
