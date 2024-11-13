@@ -1,5 +1,5 @@
 import * as THREE from "three" 
-import { assertExists, assertHTMLInputElement } from "./assertions"
+import { assertHTMLInputElement } from "./assertions"
 
 export const Side = {
     RIGHT: 0,
