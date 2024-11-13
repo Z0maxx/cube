@@ -427,15 +427,14 @@ export function initColorIdentifier() {
                         //@ts-ignore
                         { exposureMode: 'manual' }
                     ]
-                })
-                    .then(() => {
-                        track.applyConstraints({
-                            advanced: [
-                                //@ts-ignore
-                                { exposureTime: exposure.value }
-                            ]
-                        })
+                }).then(() => {
+                    track.applyConstraints({
+                        advanced: [
+                            //@ts-ignore
+                            { exposureTime: exposure.value }
+                        ]
                     })
+                })
             })
 
             video.addEventListener('loadedmetadata', _ => {
