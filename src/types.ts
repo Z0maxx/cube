@@ -40,9 +40,10 @@ export type TranslatedNotation = {
 export type SelectedVideo = 'normal' | 'avg-corrected' | 'max-corrected' | 'p-norm-corrected' | 'auto-detect' | 'auto-detect-start'
 
 export type AvgColorWorkerMessage = {
-    array: Uint8ClampedArray
+    rgbData: Uint8ClampedArray
     size: number
-    color: number
+    colorIdx: number
+    p?: number
 }
 
 export type CorrectionWorkerCanvases = {
@@ -72,7 +73,7 @@ export type CorrectionWorkerResponse = Uint8ClampedArray | SelectedVideo | numbe
 export type IdentifierWorkerMessage = IdentifierWorkerCanvases | Uint8ClampedArray
 
 export type CubeResultImage = {
-    pixels: Array<number>
+    pixels: string
     colors: Array<string>
     resultWidth: number
     resultHeight: number
