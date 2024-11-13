@@ -9,7 +9,8 @@ let normalCtx: OffscreenCanvasRenderingContext2D
 let size = 0
 let width = 0
 let height = 0
-let pNorm = 0.125
+let p = 8
+let allowNextFrame = true
 
 function getRadiusAvgColor(pixelColors: Array<number>): number {
     return pixelColors.reduce((acc, curr) => acc + curr, 0) / pixelColors.length * pixelColors.length
@@ -21,9 +22,9 @@ function getDifference(centerPixelsRed: Array<number>, centerPixelsGreen: Array<
     let avgBlue: number
 
     if (SC) {
-        const redCorrected = centerPixelsRed.map(p => p * SC[0])
-        const greenCorrected = centerPixelsGreen.map(p => p * SC[1])
-        const blueCorrected = centerPixelsBlue.map(p => p * SC[2])
+        const redCorrected = centerPixelsRed.map(pixel => pixel * SC[0])
+        const greenCorrected = centerPixelsGreen.map(pixel => pixel * SC[1])
+        const blueCorrected = centerPixelsBlue.map(pixel => pixel * SC[2])
 
         avgRed = getRadiusAvgColor(redCorrected)
         avgGreen = getRadiusAvgColor(greenCorrected)
@@ -48,15 +49,17 @@ function getMaxSC(colors: [number, number, number]): [number, number, number] {
     return [max / colors[0], max / colors[1], max / colors[2]]
 }
 
-function getPNormSC(colors: [number, number, number], testPNorm?: number): [number, number, number] {
-    colors[0] = Math.pow(colors[0], testPNorm ?  testPNorm : pNorm)
-    colors[1] = Math.pow(colors[1], testPNorm ?  testPNorm : pNorm)
-    colors[2] = Math.pow(colors[2], testPNorm ?  testPNorm : pNorm)
+function getPNormSC(colors: [number, number, number], testP?: number): [number, number, number] {
+    const pNorm = 1 / (testP ?? p)
+    colors[0] = Math.pow(colors[0], pNorm)
+    colors[1] = Math.pow(colors[1], pNorm)
+    colors[2] = Math.pow(colors[2], pNorm)
     const avg = (colors[0] + colors[1] + colors[2]) / 3
     return [avg / colors[0], avg / colors[1], avg / colors[2]]
 }
 
 function correct(message: WorkerCorrection) {
+    allowNextFrame = false
     const bitmap = message.bitmap
     normalCtx.drawImage(bitmap, 0, 0)
     const selected = message.selectedVideo
@@ -71,31 +74,95 @@ function correct(message: WorkerCorrection) {
         }
 
         const promises: Array<Promise<number>> = []
-        const colors: [number, number, number] = [0, 0, 0]
-        for (let i = 0; i < 3; i++) {
-            const color = i;
-            const worker = assertExists(avgColorWorkers[i])
-            promises.push(new Promise(resolve => {
-                worker.addEventListener('message', (message: MessageEvent<number>) => {
-                    colors[color] = message.data
-                    resolve(message.data)
-                }, { once: true })
+        const colors = {
+            normalAvg: [0, 0, 0] as [number, number, number],
+            pNormAvg: [] as Array<[number, number, number]>
+        }
+
+        if (selected === 'auto-detect') {
+            colors.pNormAvg.push([0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0])
+            for (let i = 0; i < 3; i++) {
+                const colorIdx = i;
+                const worker = assertExists(avgColorWorkers[colorIdx])
+                promises.push(new Promise(resolve => {
+                    worker.addEventListener('message', (message: MessageEvent<number>) => {
+                        colors.normalAvg[colorIdx] = message.data
+                        resolve(message.data)
+                    }, { once: true })
+                    const message: AvgColorWorkerMessage = {
+                        size: size,
+                        rgbData: rgbData,
+                        colorIdx: colorIdx,
+                    }
+                    worker.postMessage(message)
+                }))
+
+                for (let j = 1; j <= 4; j++) {
+                    const pNormIdx = j - 1
+                    const testP = j * 2
+                    promises.push(new Promise(resolve => {
+                        worker.addEventListener('message', (message: MessageEvent<number>) => {
+                            colors.pNormAvg[pNormIdx][colorIdx] = message.data
+                            resolve(message.data)
+                        }, { once: true })
+                    }))
+                    const message: AvgColorWorkerMessage = {
+                        size: size,
+                        rgbData: rgbData,
+                        colorIdx: colorIdx,
+                        p: testP
+                    }
+                    worker.postMessage(message)
+                }
+            }
+        }
+        else if (selected === 'p-norm-corrected') {
+            colors.pNormAvg.push([0, 0, 0])
+            for (let i = 0; i < 3; i++) {
+                const colorIdx = i;
+                const worker = assertExists(avgColorWorkers[colorIdx])
+
+                promises.push(new Promise(resolve => {
+                    worker.addEventListener('message', (message: MessageEvent<number>) => {
+                        colors.pNormAvg[0][colorIdx] = message.data
+                        resolve(message.data)
+                    }, { once: true })
+                }))
                 const message: AvgColorWorkerMessage = {
                     size: size,
-                    array: rgbData,
-                    color: color
+                    rgbData: rgbData,
+                    colorIdx: colorIdx,
+                    p: p
                 }
                 worker.postMessage(message)
-            }))
+            }
+        }
+        else {
+            for (let i = 0; i < 3; i++) {
+                const colorIdx = i;
+                const worker = assertExists(avgColorWorkers[colorIdx])
+                promises.push(new Promise(resolve => {
+                    worker.addEventListener('message', (message: MessageEvent<number>) => {
+                        colors.normalAvg[colorIdx] = message.data
+                        resolve(message.data)
+                    }, { once: true })
+                    const message: AvgColorWorkerMessage = {
+                        size: size,
+                        rgbData: rgbData,
+                        colorIdx: colorIdx,
+                    }
+                    worker.postMessage(message)
+                }))
+            }
         }
 
         Promise.all(promises).then(async _ => {
             if (selected == 'auto-detect') {
-                const avgSC: [number, number, number] = getAvgSC(colors)
-                const maxSC: [number, number, number] = getMaxSC(colors)
+                const avgSC: [number, number, number] = getAvgSC(colors.normalAvg)
+                const maxSC: [number, number, number] = getMaxSC(colors.normalAvg)
                 const pNormSCs: Array<[number, number, number]> = []
-                for (let i = 1; i <= 3; i++) {
-                    pNormSCs.push(getPNormSC(colors, 1 / Math.pow(2, i)))
+                for (let i = 1; i <= 4; i++) {
+                    pNormSCs.push(getPNormSC(colors.pNormAvg[i - 1], i * 2))
                 }
 
                 const centerPixelsRed: Array<number> = new Array()
@@ -136,9 +203,8 @@ function correct(message: WorkerCorrection) {
                     select = 'p-norm-corrected'
                     for (let i = 0; i < 3; i++) {
                         if (pNormDiffs[i] == lowestDiff) {
-                            const denom = Math.pow(2, (i + 1))
-                            select += `|${denom}`
-                            pNorm = 1 / denom
+                            p = Math.pow(2, (i + 1))
+                            select += `|${p}`
                         }
                     }
                 }
@@ -147,13 +213,13 @@ function correct(message: WorkerCorrection) {
             else {
                 let SC: [number, number, number] = [0, 0, 0]
                 if (selected == 'avg-corrected') {
-                    SC = getAvgSC(colors)
+                    SC = getAvgSC(colors.normalAvg)
                 }
                 else if (selected == 'max-corrected') {
-                    SC = getMaxSC(colors)
+                    SC = getMaxSC(colors.normalAvg)
                 }
                 else if (selected == 'p-norm-corrected') {
-                    SC = getPNormSC(colors)
+                    SC = getPNormSC(colors.pNormAvg[0])
                 }
                 for (let i = 0; i < size; i++) {
                     data[i * 4] = Math.round(rgbData[i * 3] * SC[0])
@@ -164,7 +230,11 @@ function correct(message: WorkerCorrection) {
                 const imageData = new ImageData(data, bitmap.width, bitmap.height)
                 correctedCtx.drawImage(await createImageBitmap(imageData), 0, 0)
             }
+            allowNextFrame = true
         })
+    }
+    else {
+        allowNextFrame = true
     }
 }
 
@@ -178,14 +248,17 @@ self.addEventListener('message', (message: MessageEvent<CorrectionWorkerMessage>
         else {
             pixels = correctedCtx.getImageData(0, 0, width, height)
         }
+        
         //@ts-ignore
         postMessage(pixels.data, [pixels.data.buffer])
     }
     else if (typeof data == 'number') {
-        pNorm = 1 / data
+        p = data
     }
     else if ('bitmap' in data) {
-        correct(message.data as WorkerCorrection)
+        if (allowNextFrame) {
+            correct(message.data as WorkerCorrection)
+        }
         postMessage(1)
     }
     else {

@@ -1,11 +1,16 @@
 import { AvgColorWorkerMessage } from "./types"
 
 function calculateAvg(message: AvgColorWorkerMessage): number {
-    const data = message.array
-    const size = message.size
-    const color = message.color
-    
-    const sum = data.filter((_, idx) => idx % 3 == color).reduce((acc, val) => acc + val)
+    const { rgbData, size, colorIdx, p } = message
+
+    let sum = 0
+    if (p) {
+        sum = rgbData.filter((_, idx) => idx % 3 == colorIdx).reduce((acc, val) => acc + Math.pow(val, p))
+    }
+    else {
+        sum = rgbData.filter((_, idx) => idx % 3 == colorIdx).reduce((acc, val) => acc + val)
+    }
+
     return sum / size
 }
 

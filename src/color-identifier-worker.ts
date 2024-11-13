@@ -8,41 +8,41 @@ let height = 0
 let emptyImage: ImageData
 
 function identify(data: Uint8ClampedArray) {
-    const pixels = new Array(size * 3)
-        for (let i = 0; i < size; i++) {
-            pixels[i * 3] = data[i * 4]
-            pixels[i * 3 + 1] = data[i * 4 + 1]
-            pixels[i * 3 + 2] = data[i * 4 + 2]
-        }
-        
-        fetch("http://localhost:5208/Cube/IdentifyColors", {
-            method: "POST",
-            body: JSON.stringify({ pixels: pixels, width: width, height: height }),
-            mode: "cors",
-            headers: {
-                "Content-type": "application/json; charset=UTF-8"
-            }
-        }).then((res) => {
-            res.json().then(async (result: CubeResultImage) => {
-                const resSize = result.resultWidth * result.resultHeight
-                
-                resultCtx.drawImage(await createImageBitmap(emptyImage), 0, 0)
-                if (resSize > 0) {
-                    const resPixels = result.pixels
+    const pixels = new Array<number>(size * 3)
+    for (let i = 0; i < size; i++) {
+        pixels[i * 3] = data[i * 4]
+        pixels[i * 3 + 1] = data[i * 4 + 1]
+        pixels[i * 3 + 2] = data[i * 4 + 2]
+    }
 
-                    const resImage = new Uint8ClampedArray(resSize * 4)
-                    for (let i = 0; i < resSize; i++) {
-                        resImage[i * 4] = resPixels[i * 3 + 2]
-                        resImage[i * 4 + 1] = resPixels[i * 3 + 1]
-                        resImage[i * 4 + 2] = resPixels[i * 3]
-                        resImage[i * 4 + 3] = 255
-                    }
-                    
-                    resultCtx.drawImage(await createImageBitmap(new ImageData(resImage, result.resultWidth, result.resultHeight)), 0, 0)
+    fetch("http://localhost:5208/Cube/IdentifyColors", {
+        method: "POST",
+        body: JSON.stringify({ pixels: btoa(pixels.reduce( (acc, curr) => acc + String.fromCharCode(curr), '')), width: width, height: height }),
+        mode: "cors",
+        headers: {
+            "Content-type": "application/json; charset=UTF-8"
+        }
+    }).then((res) => {
+        res.json().then(async (result: CubeResultImage) => {
+            const resSize = result.resultWidth * result.resultHeight
+
+            resultCtx.drawImage(await createImageBitmap(emptyImage), 0, 0)
+            if (resSize > 0) {
+                const resPixels = atob(result.pixels).split('').map(p => p.charCodeAt(0))
+
+                const resImage = new Uint8ClampedArray(resSize * 4)
+                for (let i = 0; i < resSize; i++) {
+                    resImage[i * 4] = resPixels[i * 3 + 2]
+                    resImage[i * 4 + 1] = resPixels[i * 3 + 1]
+                    resImage[i * 4 + 2] = resPixels[i * 3]
+                    resImage[i * 4 + 3] = 255
                 }
-                postMessage(result.colors)
-            })
+
+                resultCtx.drawImage(await createImageBitmap(new ImageData(resImage, result.resultWidth, result.resultHeight)), 0, 0)
+            }
+            postMessage(result.colors)
         })
+    })
 }
 
 self.addEventListener('message', (message: MessageEvent<IdentifierWorkerMessage>) => {
