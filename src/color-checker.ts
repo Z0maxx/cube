@@ -1,12 +1,34 @@
+import { assertExists } from "./assertions";
 import { Cube, Layer, Side } from "./cube-constants";
-import { ColorString, CornerColoredSides, EdgeColoredSides } from "./types";
+import { CenterColoredSide, CenterPossibleNeighborColors, Colors, ColorString, CornerColoredSides, EdgeColoredSides } from "./types";
 
+const black = 'black'
 const white = 'white'
 const red = 'red'
 const green = 'green'
 const blue = 'blue'
 const yellow = 'yellow'
 const orange = 'orange'
+
+const colorNumberMap = new Map<string, number>([
+    ['black', 0],
+    ['white', 1],
+    ['red', 2],
+    ['green', 3],
+    ['blue', 4],
+    ['yellow', 5],
+    ['orange', 6]
+])
+
+const numberColorMap = new Map<number, string>([
+    [0, 'black'],
+    [1, 'white'],
+    [2, 'red'],
+    [3, 'green'],
+    [4, 'blue'],
+    [5, 'yellow'],
+    [6, 'orange']
+])
 
 const cornerPossibleColors: Array<[ColorString, ColorString, ColorString]> = [
     [orange, green, yellow],
@@ -168,54 +190,64 @@ const edgeColoredSidesList: Array<EdgeColoredSides> = [
     }
 ]
 
-function translateCountIdxToColor(idx: number) {
-    switch (idx) {
-        case 0:
-            return white
-        case 1:
-            return red
-        case 2:
-            return green
-        case 3:
-            return blue
-        case 4:
-            return yellow
-        case 5:
-            return orange
+const centerColoredSides: Array<CenterColoredSide> = [
+    {
+        layer: Layer.FRONT,
+        cube: Cube.CENTER,
+        side: Side.FRONT
+    },
+    {
+        layer: Layer.MIDDLE,
+        cube: Cube.LEFT,
+        side: Side.LEFT
+    },
+    {
+        layer: Layer.BACK,
+        cube: Cube.CENTER,
+        side: Side.BACK
+    },
+    {
+        layer: Layer.MIDDLE,
+        cube: Cube.RIGHT,
+        side: Side.RIGHT
+    },
+    {
+        layer: Layer.MIDDLE,
+        cube: Cube.TOP,
+        side: Side.TOP
+    },
+    {
+        layer: Layer.MIDDLE,
+        cube: Cube.BOTTOM,
+        side: Side.BOTTOM
     }
-}
+]
 
-function checkCounts(colors: Array<Array<Array<ColorString>>>): string {
+const centerPossibleNeighborColorsList: Array<CenterPossibleNeighborColors> = [
+    { color: white, neighborColors: [red, blue, orange, green], pairColor: yellow },
+    { color: yellow, neighborColors: [red, green, orange, blue], pairColor: white },
+    { color: red, neighborColors: [yellow, blue, white, green], pairColor: orange },
+    { color: orange, neighborColors: [blue, yellow, green, white], pairColor: red },
+    { color: blue, neighborColors: [white, red, yellow, orange], pairColor: green },
+    { color: green, neighborColors: [white, orange, yellow, red], pairColor: blue }
+]
+
+function checkCounts(colors: Colors): string {
     const counts: Array<number> = (new Array(6)).fill(0)
     for (let i = 0; i < 3; i++) {
         for (let j = 0; j < 9; j++) {
             for (let k = 0; k < 6; k++) {
-                switch (colors[i][j][k]) {
-                    case white:
-                        counts[0]++
-                        break
-                    case red:
-                        counts[1]++
-                        break
-                    case green:
-                        counts[2]++
-                        break
-                    case blue:
-                        counts[3]++
-                        break
-                    case yellow:
-                        counts[4]++
-                        break
-                    case orange:
-                        counts[5]++
-                        break
+                const color = colors[i][j][k]
+                if (color != black)
+                {
+                    counts[assertExists(colorNumberMap.get(color)) - 1]++;
                 }
             }
         }
     }
     return counts
         .filter(count => count !== 9)
-        .map((count, idx) => `<div>${translateCountIdxToColor(idx)}: ${count}</div>`)
+        .map((count, idx) => `<div>${numberColorMap.get(idx + 1)}: ${count}</div>`)
         .join('\n')
 }
 
@@ -249,12 +281,13 @@ function translateCornerToString(corner: CornerColoredSides): string {
     throw new Error()
 }
 
-function checkCorners(colors: Array<Array<Array<ColorString>>>): string {
+function checkCorners(colors: Colors): string {
     return cornerColoredSidesList
         .filter(corner => {
             const cube = colors[corner.layer][corner.cube]
             const sides = corner.sides
             const cornerColors: [ColorString, ColorString, ColorString] = [cube[sides[0]], cube[sides[1]], cube[sides[2]]]
+
             return cornerPossibleColors.every(possibleColor => {
                 let i = 0
                 while (i < 3 && cornerColors[i] == possibleColor[i]) {
@@ -309,12 +342,13 @@ function translateEdgeToString(edge: EdgeColoredSides): string {
     throw new Error()
 }
 
-function checkEdges(colors: Array<Array<Array<ColorString>>>): string {
+function checkEdges(colors: Colors): string {
     return edgeColoredSidesList
         .filter(edge => {
             const cube = colors[edge.layer][edge.cube]
             const sides = edge.sides
             const edgeColors: [ColorString, ColorString] = [cube[sides[0]], cube[sides[1]]]
+            
             return edgePossibleColors.every(possibleColor => {
                 let i = 0
                 while (i < 2 && edgeColors[i] == possibleColor[i]) {
@@ -327,10 +361,46 @@ function checkEdges(colors: Array<Array<Array<ColorString>>>): string {
         .join('\n')
 }
 
-export function checkColors(colors: Array<Array<Array<ColorString>>>): string {
+function doesCenterColorMatch(colors: Colors, center: CenterColoredSide, color: ColorString): boolean {
+    return colors[center.layer][center.cube][center.side] === color
+}
+
+function areCentersValid(colors: Colors): boolean {
+    const centerNighborColors = centerPossibleNeighborColorsList.find(p => doesCenterColorMatch(colors, centerColoredSides[5], p.color))
+
+    if (!centerNighborColors || !doesCenterColorMatch(colors, centerColoredSides[4], centerNighborColors.pairColor)) {
+        return false
+    }
+    
+    let start = 0
+    while (start < 4) {
+        let matches = 0
+        for (let i = 0; i < 4; i++) {
+            let idx = i + start
+            if (idx >= 4) {
+                idx %= 4
+            }
+
+            if (doesCenterColorMatch(colors, centerColoredSides[i], centerNighborColors.neighborColors[idx])) {
+                matches++
+            }
+        }
+
+        if (matches === 4) {
+            return true
+        }
+
+        start++
+    }
+
+    return false
+}
+
+export function checkColors(colors: Colors): string {
     const counts = checkCounts(colors)
     const corners = checkCorners(colors)
     const edges = checkEdges(colors)
+    const centersValid = areCentersValid(colors)
     const countErrors = counts === '' ? '' : `
     <div>
         <h2>Wrong amount of colors:</h2>
@@ -346,8 +416,10 @@ export function checkColors(colors: Array<Array<Array<ColorString>>>): string {
         <h2>Not possible edge colors:</h2>
         ${edges}
     </div>`
+    const centerError = centersValid ? '' : `
+    <div>
+        <h2>Not possible center colors</h2>
+    </div>`
 
-    return countErrors + cornerErrors + egdeErrors
+    return countErrors + cornerErrors + egdeErrors + centerError
 }
-    
-        

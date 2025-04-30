@@ -53,7 +53,7 @@ export const Layer = {
     FRONT: 0,
     MIDDLE: 1,
     BACK: 2
-}
+} as const
 
 export const Color = {
     BLACK: [0, 0, 0] as [number, number, number],

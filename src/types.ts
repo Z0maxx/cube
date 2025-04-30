@@ -91,7 +91,21 @@ export type EdgeColoredSides = {
     sides: [TSide, TSide]
 }
 
+export type CenterColoredSide = {
+    layer: TLayer
+    cube: TCube
+    side: TSide
+}
+
 export type CubeSolve = {
     moves: Array<TNotation>
     error: string
+}
+
+export type Colors = Array<Array<Array<ColorString>>>
+
+export type CenterPossibleNeighborColors = {
+    color: ColorString,
+    neighborColors: [ColorString, ColorString, ColorString, ColorString],
+    pairColor: ColorString
 }
