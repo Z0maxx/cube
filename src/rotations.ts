@@ -1,6 +1,6 @@
 import gsap from "gsap"
 import * as THREE from 'three'
-import { Color, Cube, CubeLayer, Direction, Orientation, Side, autoplay, cubeColors, innerCubeMaterials, layers, next } from "./cube-constants"
+import { Color, Cube, CubeLayer, Direction, Layer, Orientation, Side, autoplay, cubeColors, innerCubeMaterials, layers, next } from "./cube-constants"
 import { innerCubeBlackMaterial } from "./materials"
 import { rotateFaceColorsXDownCenterMoves, rotateFaceColorsXDownCornerMoves, rotateFaceColorsXDownEdgeMoves, rotateFaceColorsXUpCenterMoves, rotateFaceColorsXUpCornerMoves, rotateFaceColorsXUpEdgeMoves, rotateFaceColorsYLeftCenterMoves, rotateFaceColorsYLeftCornerMoves, rotateFaceColorsYLeftEdgeMoves, rotateFaceColorsYRightCenterMoves, rotateFaceColorsYRightCornerMoves, rotateFaceColorsYRightEdgeMoves, rotateLayerColorsLeftCornerMoves, rotateLayerColorsLeftEgdeMoves, rotateLayerColorsRightCornerMoves, rotateLayerColorsRightEgdeMoves } from "./moves"
 import { Move, MoveWithLayer, TCubeLayer, TDirection, TLayer, TOriention, TSide } from "./types"
@@ -116,12 +116,12 @@ export function turn(layer: TCubeLayer, direction: TDirection, twice?: boolean) 
         orientLayersX()
     }
 
-    let cubeLayerIdx = 0
+    let cubeLayerIdx: TLayer = Layer.FRONT
     if (layer == CubeLayer.BACK || layer == CubeLayer.BOTTOM || layer == CubeLayer.RIGHT) {
-        cubeLayerIdx = 2
+        cubeLayerIdx = Layer.BACK
     }
     else if (layer == CubeLayer.E || layer == CubeLayer.M || layer == CubeLayer.S) {
-        cubeLayerIdx = 1
+        cubeLayerIdx = Layer.MIDDLE
     }
 
     let angle = Math.PI / 2
